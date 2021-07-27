@@ -1,18 +1,11 @@
-import base64
 import io
 import os
-import shutil
 import subprocess
-import uuid
 from pathlib import Path
 
-from algosdk import account, kmd, mnemonic
-from algosdk.constants import microalgos_to_algos_ratio
-from algosdk.error import WrongChecksumError, WrongMnemonicLengthError
-from algosdk.future.transaction import AssetConfigTxn, PaymentTxn
+from algosdk import account, mnemonic
+from algosdk.future.transaction import PaymentTxn
 from algosdk.v2client import algod, indexer
-from algosdk.wallet import Wallet
-from pyteal import compileTeal, Mode
 
 
 ## SANDBOX
@@ -33,7 +26,7 @@ def _sandbox_directory():
     is implied to be the sibling of this Django project in the directory tree.
     """
     return os.environ.get("SANDBOX_DIR") or str(
-        Path(__file__).resolve().parent.parent.parent.parent / "sandbox"
+        Path(__file__).resolve().parent.parent / "sandbox"
     )
 
 
@@ -59,36 +52,13 @@ def _cli_passphrase_for_account(address):
     return passphrase
 
 
-def _cli_clerk_compile(compiled_file, teal_file):
-    """Compile provided `teal_file` smart contract file to `compiled_file`."""
-    process = _call_sandbox_command("copyTo", teal_file)
-    err = "".join(io.TextIOWrapper(process.stderr))
-    if err != "":
-        raise Exception(err)
-
-    process = _call_sandbox_command(
-        "goal", "clerk", "compile", "-o", compiled_file.name, teal_file.name
-    )
-    err = "".join(io.TextIOWrapper(process.stderr))
-    if err != "":
-        raise Exception(err)
-
-    process = _call_sandbox_command("copyFrom", compiled_file.name)
-    err = "".join(io.TextIOWrapper(process.stderr))
-    if err != "":
-        raise Exception(err)
-
-    # copyFrom copies file to the current directory
-    shutil.move(compiled_file.name, compiled_file.as_posix())
-
-    return "\n".join(io.TextIOWrapper(process.stdout))
-
-
 ## CLIENTS
 def _algod_client():
     """Instantiate and return Algod client object."""
     algod_address = "http://localhost:4001"
+    # algod_address = "http://127.0.0.1:45821"
     algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    # algod_token = "5cc28c1e0334a1af1b93340ffe3b7cc9b9f723e283ada55b32ae197f807480e6"
     return algod.AlgodClient(algod_token, algod_address)
 
 
@@ -111,13 +81,6 @@ def _add_transaction(sender, receiver, passphrase, amount, note):
     params = client.suggested_params()
     unsigned_txn = PaymentTxn(sender, params, receiver, amount, None, note.encode())
     signed_txn = unsigned_txn.sign(mnemonic.to_private_key(passphrase))
-    return process_transaction(signed_txn, client)
-
-
-def process_transaction(signed_txn, client=None):
-    """Send transaction to the network and wait for confirmation."""
-    if client is None:
-        client = _algod_client()
     transaction_id = client.send_transaction(signed_txn)
     _wait_for_confirmation(client, transaction_id, 4)
     return transaction_id
@@ -153,6 +116,14 @@ def _wait_for_confirmation(client, transaction_id, timeout):
     )
 
 
+def process_transactions(transactions):
+    """Send provided grouped `transactions` to network and wait for confirmation."""
+    client = _algod_client()
+    transaction_id = client.send_transactions(transactions)
+    _wait_for_confirmation(client, transaction_id, 4)
+    return transaction_id
+
+
 ## CREATING
 def add_standalone_account():
     """Create standalone account and return two-tuple of its private key and address."""
@@ -160,29 +131,8 @@ def add_standalone_account():
     return private_key, address
 
 
-def compile_smart_contract(smart_contract):
-    """Return compiled binary stream of provided `smart_contract`."""
-
-    path = Path(__file__).resolve().parent / "contracts"
-
-    teal_file = path / (str(uuid.uuid4()) + ".teal")
-    with open(teal_file, "w+") as file_stream:
-        file_stream.write(compileTeal(smart_contract(), mode=Mode.Signature, version=3))
-
-    compiled_contract_file = path / (str(uuid.uuid4()) + ".lsig")
-
-    output = _cli_clerk_compile(compiled_contract_file, teal_file)
-    print(output)
-
-    with open(compiled_contract_file, "rb") as file_stream:
-        binary_stream = file_stream.read()
-
-    return binary_stream
-
-
-def create_and_fund_sender(initial_funds=1000000):
-    """Create account that will be sender in smart contract."""
-    private_key, address = add_standalone_account()
+def fund_account(address, initial_funds=10000000):
+    """Fund provided `address` with `initial_funds` amount of microAlgos."""
     initial_funds_address = _initial_funds_address()
     if initial_funds_address is None:
         raise Exception("Initial funds weren't transferred!")
@@ -193,7 +143,6 @@ def create_and_fund_sender(initial_funds=1000000):
         initial_funds,
         "Initial funds",
     )
-    return private_key, address
 
 
 ## RETRIEVING
@@ -212,6 +161,12 @@ def _initial_funds_address():
         ),
         None,
     )
+
+
+def account_balance(address):
+    """Return funds balance of the account having provided address."""
+    account_info = _algod_client().account_info(address)
+    return account_info.get("amount")
 
 
 def suggested_params():
