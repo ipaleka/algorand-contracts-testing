@@ -9,14 +9,6 @@ from helpers import (
 )
 
 
-def _create_accounts():
-    """Create accounts involved in smart cointract."""
-    _, owner = add_standalone_account()
-    _, receiver_1 = add_standalone_account()
-    _, receiver_2 = add_standalone_account()
-    return owner, receiver_1, receiver_2
-
-
 def _create_grouped_transactions(split_template, amount):
     """Create grouped transactions for the provided `split_template` and `amount`."""
     params = suggested_params()
@@ -48,7 +40,9 @@ def _create_split_template(
 
 def setup_split_contract(amount=1000000, **kwargs):
     """Create split contract and send provided amount."""
-    owner, receiver_1, receiver_2 = _create_accounts()
+    owner = kwargs.pop("owner", add_standalone_account()[1])
+    receiver_1 = kwargs.pop("receiver_1", add_standalone_account()[1])
+    receiver_2 = kwargs.pop("receiver_2", add_standalone_account()[1])
 
     split_template = _create_split_template(owner, receiver_1, receiver_2, **kwargs)
     escrow_address = split_template.get_address()
@@ -60,7 +54,21 @@ def setup_split_contract(amount=1000000, **kwargs):
 
 
 if __name__ == "__main__":
-    owner, receiver_1, receiver_2, transaction_id = setup_split_contract()
+    _, local_owner = add_standalone_account()
+    _, local_receiver_2 = add_standalone_account()
+    amount = 5000000
+
+    owner, receiver_1, receiver_2, transaction_id = setup_split_contract(
+        amount=amount,
+        owner=local_owner,
+        receiver_2=local_receiver_2,
+        ratio_1=3,
+        ratio_2=7,
+    )
+    assert owner == local_owner
+    assert receiver_2 == local_receiver_2
+
+    print("amount: %s" % (amount,))
     print("owner: %s" % (account_balance(owner),))
     print("receiver_1: %s" % (account_balance(receiver_1),))
     print("receiver_2: %s" % (account_balance(receiver_2),))

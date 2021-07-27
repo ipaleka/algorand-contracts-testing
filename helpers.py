@@ -131,7 +131,7 @@ def add_standalone_account():
     return private_key, address
 
 
-def fund_account(address, initial_funds=10000000):
+def fund_account(address, initial_funds=1000000000):
     """Fund provided `address` with `initial_funds` amount of microAlgos."""
     initial_funds_address = _initial_funds_address()
     if initial_funds_address is None:
