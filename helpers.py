@@ -3,11 +3,16 @@
 import io
 import os
 import subprocess
+import time
+
 from pathlib import Path
 
 from algosdk import account, mnemonic
+from algosdk.error import IndexerHTTPError
 from algosdk.future.transaction import PaymentTxn
 from algosdk.v2client import algod, indexer
+
+INDEXER_TIMEOUT = 10
 
 
 ## SANDBOX
@@ -178,4 +183,17 @@ def account_balance(address):
 
 def transaction_info(transaction_id):
     """Return transaction with provided id."""
-    return _indexer_client().transaction(transaction_id)
+    timeout = 0
+    while timeout < INDEXER_TIMEOUT:
+        try:
+            transaction = _indexer_client().transaction(transaction_id)
+            break
+        except IndexerHTTPError:
+            time.sleep(1)
+            timeout += 1
+    else:
+        raise TimeoutError(
+            "Timeout reached waiting for transaction to be available in indexer"
+        )
+
+    return transaction
