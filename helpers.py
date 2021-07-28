@@ -1,3 +1,5 @@
+"""Module containing helper functions for accessing Algorand blockchain."""
+
 import io
 import os
 import subprocess
@@ -124,6 +126,11 @@ def process_transactions(transactions):
     return transaction_id
 
 
+def suggested_params():
+    """Return the suggested params from the algod client."""
+    return _algod_client().suggested_params()
+
+
 ## CREATING
 def add_standalone_account():
     """Create standalone account and return two-tuple of its private key and address."""
@@ -169,6 +176,6 @@ def account_balance(address):
     return account_info.get("amount")
 
 
-def suggested_params():
-    """Return the suggested params from the algod client."""
-    return _algod_client().suggested_params()
+def transaction_info(transaction_id):
+    """Return transaction with provided id."""
+    return _indexer_client().transaction(transaction_id)

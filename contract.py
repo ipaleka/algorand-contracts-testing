@@ -1,3 +1,7 @@
+"""Module containing domain logic for smart contract creation."""
+
+import json
+
 from algosdk import template
 
 from helpers import (
@@ -6,6 +10,7 @@ from helpers import (
     fund_account,
     process_transactions,
     suggested_params,
+    transaction_info,
 )
 
 
@@ -72,4 +77,4 @@ if __name__ == "__main__":
     print("owner: %s" % (account_balance(owner),))
     print("receiver_1: %s" % (account_balance(receiver_1),))
     print("receiver_2: %s" % (account_balance(receiver_2),))
-    print("transaction_id: %s" % (transaction_id,))
+    print(json.dumps(transaction_info(transaction_id), indent=4, sort_keys=True))
