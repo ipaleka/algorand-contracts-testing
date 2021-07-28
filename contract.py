@@ -31,15 +31,15 @@ def _create_split_contract(
     owner,
     receiver_1,
     receiver_2,
-    ratio_1=1,
-    ratio_2=3,
+    rat_1=1,
+    rat_2=3,
     expiry_round=5000000,
     min_pay=3000,
     max_fee=2000,
 ):
     """Create and return split template instance from the provided arguments."""
     return template.Split(
-        owner, receiver_1, receiver_2, ratio_1, ratio_2, expiry_round, min_pay, max_fee
+        owner, receiver_1, receiver_2, rat_1, rat_2, expiry_round, min_pay, max_fee
     )
 
 
@@ -59,7 +59,7 @@ def setup_split_contract(**kwargs):
     split_contract = _create_split_contract(owner, receiver_1, receiver_2, **kwargs)
     escrow_address = split_contract.get_address()
     fund_account(escrow_address)
-    return split_contract, owner, receiver_1, receiver_2
+    return split_contract
 
 
 if __name__ == "__main__":
@@ -67,19 +67,19 @@ if __name__ == "__main__":
     _, local_receiver_2 = add_standalone_account()
     amount = 5000000
 
-    split_contract, owner, receiver_1, receiver_2 = setup_split_contract(
+    split_contract = setup_split_contract(
         owner=local_owner,
         receiver_2=local_receiver_2,
-        ratio_1=3,
-        ratio_2=7,
+        rat_1=3,
+        rat_2=7,
     )
-    assert owner == local_owner
-    assert receiver_2 == local_receiver_2
+    assert split_contract.owner == local_owner
+    assert split_contract.receiver_2 == local_receiver_2
 
     transaction_id = create_split_transaction(split_contract, amount=amount)
 
     print("amount: %s" % (amount,))
-    print("owner: %s" % (account_balance(owner),))
-    print("receiver_1: %s" % (account_balance(receiver_1),))
-    print("receiver_2: %s" % (account_balance(receiver_2),))
+    print("owner: %s" % (account_balance(split_contract.owner),))
+    print("receiver_1: %s" % (account_balance(split_contract.receiver_1),))
+    print("receiver_2: %s" % (account_balance(split_contract.receiver_2),))
     print(json.dumps(transaction_info(transaction_id), indent=2))

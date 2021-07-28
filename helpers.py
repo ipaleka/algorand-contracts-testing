@@ -25,21 +25,9 @@ def _call_sandbox_command(*args):
     )
 
 
-def _sandbox_directory():
-    """Return full path to Algorand's sandbox executable.
-
-    The location of sandbox directory is retrieved either from the SANDBOX_DIR
-    environment variable or if it's not set then the location of sandbox directory
-    is implied to be the sibling of this Django project in the directory tree.
-    """
-    return os.environ.get("SANDBOX_DIR") or str(
-        Path(__file__).resolve().parent.parent / "sandbox"
-    )
-
-
 def _sandbox_executable():
     """Return full path to Algorand's sandbox executable."""
-    return _sandbox_directory() + "/sandbox"
+    return sandbox_directory() + "/sandbox"
 
 
 def _cli_passphrase_for_account(address):
@@ -57,6 +45,18 @@ def _cli_passphrase_for_account(address):
             % (address, output)
         )
     return passphrase
+
+
+def sandbox_directory():
+    """Return full path to Algorand's sandbox executable.
+
+    The location of sandbox directory is retrieved either from the SANDBOX_DIR
+    environment variable or if it's not set then the location of sandbox directory
+    is implied to be the sibling of this Django project in the directory tree.
+    """
+    return os.environ.get("SANDBOX_DIR") or str(
+        Path(__file__).resolve().parent.parent / "sandbox"
+    )
 
 
 ## CLIENTS
@@ -167,7 +167,7 @@ def _initial_funds_address():
     return next(
         (
             account.get("address")
-            for account in _indexer_client().accounts().get("accounts", [{}, {}])[1:-1]
+            for account in _indexer_client().accounts().get("accounts", [{}, {}])
             if account.get("created-at-round") == 0
             and account.get("status") == "Offline"
         ),
