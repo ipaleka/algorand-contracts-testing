@@ -3,7 +3,7 @@
 import pytest
 
 from contract import setup_split_contract
-from helpers import add_standalone_account
+from helpers import account_balance, add_standalone_account
 
 
 class TestSplitContractExistingAccount:
@@ -18,6 +18,7 @@ class TestSplitContractExistingAccount:
     # def teardown_method(self):
     #     """"""
 
+    # @pytest.mark.skip()
     def test_created_contract_uses_existing_accounts_when_they_are_provided(self):
         split_contract = setup_split_contract(
             owner=self.owner, receiver_1=self.receiver_1, receiver_2=self.receiver_2
@@ -25,6 +26,14 @@ class TestSplitContractExistingAccount:
         assert split_contract.owner == self.owner
         assert split_contract.receiver_1 == self.receiver_1
         assert split_contract.receiver_2 == self.receiver_2
+
+    # def test_indexer(self):
+    #     assert (
+    #         account_balance(
+    #             "GLQ3ZHEW6DXA25NPBDPVP4MWRQOBLUU3FAZ2KRY6PNMWP2WIDM6VPKZB4U"
+    #         )
+    #         > 4000051000000000
+    #     )
 
     # @pytest.mark.parametrize(
     #     "dest,count",

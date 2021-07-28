@@ -1,7 +1,7 @@
 """Module containing helper functions for accessing Algorand blockchain."""
 
-import io
 import os
+import pty
 import subprocess
 import time
 
@@ -18,10 +18,8 @@ INDEXER_TIMEOUT = 10
 ## SANDBOX
 def _call_sandbox_command(*args):
     """Call and return sandbox command composed from provided arguments."""
-    return subprocess.Popen(
-        [_sandbox_executable(), *args],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+    return subprocess.run(
+        [_sandbox_executable(), *args], stdin=pty.openpty()[1], capture_output=True
     )
 
 
@@ -33,16 +31,18 @@ def _sandbox_executable():
 def _cli_passphrase_for_account(address):
     """Return passphrase for provided address."""
     process = _call_sandbox_command("goal", "account", "export", "-a", address)
+
+    if process.stderr:
+        raise RuntimeError(process.stderr.decode("utf8"))
+
     passphrase = ""
-    output = [line for line in io.TextIOWrapper(process.stdout)]
-    for line in output:
-        parts = line.split('"')
-        if len(parts) > 1:
-            passphrase = parts[1]
+    parts = process.stdout.decode("utf8").split('"')
+    if len(parts) > 1:
+        passphrase = parts[1]
     if passphrase == "":
         raise ValueError(
             "Can't retrieve passphrase from the address: %s\nOutput: %s"
-            % (address, output)
+            % (address, process.stdout.decode("utf8"))
         )
     return passphrase
 
@@ -63,9 +63,7 @@ def sandbox_directory():
 def _algod_client():
     """Instantiate and return Algod client object."""
     algod_address = "http://localhost:4001"
-    # algod_address = "http://127.0.0.1:45821"
     algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    # algod_token = "5cc28c1e0334a1af1b93340ffe3b7cc9b9f723e283ada55b32ae197f807480e6"
     return algod.AlgodClient(algod_token, algod_address)
 
 
