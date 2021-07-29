@@ -1,4 +1,3 @@
 pyteal
 py-algorand-sdk
 pytest
-pytest-xprocess

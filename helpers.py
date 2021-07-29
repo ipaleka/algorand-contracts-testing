@@ -16,21 +16,9 @@ INDEXER_TIMEOUT = 10
 
 
 ## SANDBOX
-def _call_sandbox_command(*args):
-    """Call and return sandbox command composed from provided arguments."""
-    return subprocess.run(
-        [_sandbox_executable(), *args], stdin=pty.openpty()[1], capture_output=True
-    )
-
-
-def _sandbox_executable():
-    """Return full path to Algorand's sandbox executable."""
-    return sandbox_directory() + "/sandbox"
-
-
 def _cli_passphrase_for_account(address):
     """Return passphrase for provided address."""
-    process = _call_sandbox_command("goal", "account", "export", "-a", address)
+    process = call_sandbox_command("goal", "account", "export", "-a", address)
 
     if process.stderr:
         raise RuntimeError(process.stderr.decode("utf8"))
@@ -47,7 +35,7 @@ def _cli_passphrase_for_account(address):
     return passphrase
 
 
-def sandbox_directory():
+def _sandbox_directory():
     """Return full path to Algorand's sandbox executable.
 
     The location of sandbox directory is retrieved either from the SANDBOX_DIR
@@ -56,6 +44,18 @@ def sandbox_directory():
     """
     return os.environ.get("SANDBOX_DIR") or str(
         Path(__file__).resolve().parent.parent / "sandbox"
+    )
+
+
+def _sandbox_executable():
+    """Return full path to Algorand's sandbox executable."""
+    return _sandbox_directory() + "/sandbox"
+
+
+def call_sandbox_command(*args):
+    """Call and return sandbox command composed from provided arguments."""
+    return subprocess.run(
+        [_sandbox_executable(), *args], stdin=pty.openpty()[1], capture_output=True
     )
 
 

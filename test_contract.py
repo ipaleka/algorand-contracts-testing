@@ -3,10 +3,15 @@
 import pytest
 
 from contract import setup_split_contract
-from helpers import account_balance, add_standalone_account
+from helpers import account_balance, add_standalone_account, call_sandbox_command
 
 
-class TestSplitContractExistingAccount:
+def setup_module(module):
+    """Ensure Algorand Sandbox is up prior to running tests from this module."""
+    call_sandbox_command("up")
+
+
+class TestSplitContractExistingAccounts:
     """Base class for testing the split smart contract with pre-existing accounts."""
 
     def setup_method(self):
@@ -18,7 +23,6 @@ class TestSplitContractExistingAccount:
     # def teardown_method(self):
     #     """"""
 
-    # @pytest.mark.skip()
     def test_created_contract_uses_existing_accounts_when_they_are_provided(self):
         split_contract = setup_split_contract(
             owner=self.owner, receiver_1=self.receiver_1, receiver_2=self.receiver_2
