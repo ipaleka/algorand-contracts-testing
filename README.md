@@ -1,7 +1,92 @@
 # algorand-contracts-testing
 
-Create smart contract and test it using pytest.
+Create Algorand smart contract using [pyteal](https://github.com/algorand/pyteal) and test it using [pytest](https://github.com/pytest-dev/pytest).
 
-Run tests with provided path to sandbox directory: `SANDBOX_DIR="/home/ipaleka/dev/algorand/sandbox/" pytest`.
 
-`pytest -v -n 3`
+---
+**Security warning**
+
+This project has not been audited and should not be used in a production environment.
+
+---
+
+# Requirements
+
+You should have Python 3 installed on your system. Also, this tutorial uses `python3-venv` for creating virtual environments - install it in a Debian/Ubuntu based systems by issuing the following command:
+
+```bash
+$ sudo apt-get install python3-venv
+```
+
+[Algorand Sandbox](https://github.com/algorand/sandbox) must be installed on your computer. It is implied that the Sandbox executable is in the `sandbox` directory next to this project directory:
+
+```bash
+$ tree -L 1
+.
+├── algorand-contracts-testing
+└── sandbox
+```
+
+If that's not the case, then you should set `SANDBOX_DIR` environment variable holding sandbox directory before running the tests, like the following:
+
+```bash
+export SANDBOX_DIR="/home/ipaleka/dev/algorand/sandbox"
+```
+
+If you want to clone the repositories, not just download them, then you should have Git installed on your computer.
+
+
+# Setup
+
+At first create the root directory:
+
+```bash
+cd ~
+mkdir algorand
+cd algorand
+```
+
+Then clone both repositories:
+
+```bash
+git clone https://github.com/ipaleka/algorand-contracts-testing.git
+git clone https://github.com/algorand/sandbox.git
+```
+
+As always for the Python-based projects, you should create a Python environment and activate it:
+
+```bash
+python3 -m venv algtest
+source algtest/bin/activate
+```
+
+Now change the directory to the project root directory and install the project dependencies with:
+
+```bash
+(algtest) $ cd algorand-contracts-testing
+(algtest) $ pip install -r requirements.txt
+```
+
+Please bear in mind that starting the Sandbox for the first time takes time. If that's the case then your first tests run will take longer than usual.
+
+Run the tests with:
+
+```bash
+(algtest) $ pytest -v
+```
+
+For speeding up the tests run, issue the following to use three of your processor's cores in parallel:
+
+```bash
+(algtest) $ pytest -v -n 3
+```
+
+
+# Troubleshooting
+
+If you want a fresh start, reset the Sandbox with:
+
+```bash
+../sandbox/sandbox clean
+../sandbox/sandbox up
+```
