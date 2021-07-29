@@ -43,7 +43,7 @@ def _create_split_contract(
     )
 
 
-def create_split_transaction(split_contract, amount=1000000):
+def create_split_transaction(split_contract, amount):
     """Create transaction with provided amount for provided split contract."""
     transactions = _create_grouped_transactions(split_contract, amount)
     transaction_id = process_transactions(transactions)
@@ -76,10 +76,18 @@ if __name__ == "__main__":
     assert split_contract.owner == local_owner
     assert split_contract.receiver_2 == local_receiver_2
 
-    transaction_id = create_split_transaction(split_contract, amount=amount)
+    transaction_id = create_split_transaction(split_contract, amount)
 
     print("amount: %s" % (amount,))
-    print("owner: %s" % (account_balance(split_contract.owner),))
-    print("receiver_1: %s" % (account_balance(split_contract.receiver_1),))
-    print("receiver_2: %s" % (account_balance(split_contract.receiver_2),))
+
+    print("escrow: %s" % (split_contract.get_address(),))
+    print("balance_escrow: %s" % (account_balance(split_contract.get_address()),))
+    print("owner: %s" % (split_contract.owner,))
+    print("balance_owner: %s" % (account_balance(split_contract.owner),))
+    print("receiver_1: %s" % (split_contract.receiver_1,))
+    print("balance_1: %s" % (account_balance(split_contract.receiver_2),))
+    print(
+        "receiver_2: %s" % (split_contract.receiver_2),
+    )
+    print("balance_2: %s" % (account_balance(split_contract.receiver_2),))
     print(json.dumps(transaction_info(transaction_id), indent=2))
