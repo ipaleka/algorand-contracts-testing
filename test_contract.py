@@ -19,6 +19,7 @@ from helpers import (
 def setup_module(module):
     """Ensure Algorand Sandbox is up prior to running tests from this module."""
     call_sandbox_command("up")
+    # call_sandbox_command("up", "devmode")
 
 
 class TestSplitContract:
@@ -31,7 +32,10 @@ class TestSplitContract:
         _, self.receiver_2 = add_standalone_account()
 
     def _create_split_contract(self, **kwargs):
-        """Create contract from pre-existing accounts and provided named arguments."""
+        """Helper method for creating contract from pre-existing accounts
+
+        and provided named arguments.
+        """
         return setup_split_contract(
             owner=self.owner,
             receiver_1=self.receiver_1,
@@ -40,18 +44,27 @@ class TestSplitContract:
         )
 
     def test_contract_creates_new_accounts(self):
+        """Contract creation function `setup_split_contract` should create new accounts
+
+        if existing are not provided to it.
+        """
         contract = setup_split_contract()
         assert contract.owner != self.owner
         assert contract.receiver_1 != self.receiver_1
         assert contract.receiver_2 != self.receiver_2
 
     def test_contract_uses_existing_accounts_when_they_are_provided(self):
+        """Provided accounts should be used in the smart contract."""
         contract = self._create_split_contract()
         assert contract.owner == self.owner
         assert contract.receiver_1 == self.receiver_1
         assert contract.receiver_2 == self.receiver_2
 
     def test_min_pay(self):
+        """Transaction should be created when the splitted amount for receiver_1
+
+        is greater than `min_pay`.
+        """
         min_pay = 250000
         contract = self._create_split_contract(min_pay=min_pay, rat_1=1, rat_2=3)
         amount = 2000000
@@ -59,6 +72,10 @@ class TestSplitContract:
         assert account_balance(contract.receiver_1) > min_pay
 
     def test_min_pay_failed_transaction(self):
+        """Transaction should fail when the splitted amount for receiver_1
+
+        is less than `min_pay`.
+        """
         min_pay = 300000
         contract = self._create_split_contract(min_pay=min_pay, rat_1=1, rat_2=3)
         amount = 1000000
@@ -71,6 +88,7 @@ class TestSplitContract:
         )
 
     def test_max_fee_failed_transaction(self):
+        """Transaction should fail for the fee greater than `max_fee`."""
         max_fee = 500
         contract = self._create_split_contract(max_fee=max_fee, rat_1=1, rat_2=3)
         amount = 1000000
@@ -91,6 +109,7 @@ class TestSplitContract:
         ],
     )
     def test_invalid_ratios_for_amount(self, amount, rat_1, rat_2):
+        """Transaction should fail for every combination of provided amount and ratios."""
         contract = self._create_split_contract(rat_1=rat_1, rat_2=rat_2)
         with pytest.raises(TemplateInputError) as exception:
             create_split_transaction(contract, amount)
@@ -111,6 +130,10 @@ class TestSplitContract:
         ],
     )
     def test_balances_of_involved_accounts(self, amount, rat_1, rat_2):
+        """After successful transaction, balance of involved accounts should pass
+
+        assertion to result of expressions calculated from the provided arguments.
+        """
         contract = self._create_split_contract(rat_1=rat_1, rat_2=rat_2)
         assert account_balance(contract.owner) == 0
         assert account_balance(contract.receiver_1) == 0
@@ -126,6 +149,11 @@ class TestSplitContract:
         assert account_balance(contract.receiver_2) == rat_2 * amount / (rat_1 + rat_2)
 
     def test_contract_transaction(self):
+        """Successful transaction should have sender equal to escrow account.
+
+        Also, receiver should be contract's receiver_1, the type should be payment,
+        and group should be a valid address.
+        """
         contract = setup_split_contract()
         transaction_id = create_split_transaction(contract, 1000000)
         transaction = transaction_info(transaction_id)

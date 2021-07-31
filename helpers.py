@@ -12,7 +12,7 @@ from algosdk.error import IndexerHTTPError
 from algosdk.future.transaction import PaymentTxn
 from algosdk.v2client import algod, indexer
 
-INDEXER_TIMEOUT = 10
+INDEXER_TIMEOUT = 5  # 61 for devMode
 
 
 ## SANDBOX
@@ -167,7 +167,7 @@ def _initial_funds_address():
             account.get("address")
             for account in _indexer_client().accounts().get("accounts", [{}, {}])
             if account.get("created-at-round") == 0
-            and account.get("status") == "Offline"
+            and account.get("status") == "Offline"  # "Online" for devMode
         ),
         None,
     )
