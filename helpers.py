@@ -1,5 +1,6 @@
 """Module containing helper functions for accessing Algorand blockchain."""
 
+import base64
 import os
 import pty
 import subprocess
@@ -9,10 +10,10 @@ from pathlib import Path
 
 from algosdk import account, mnemonic
 from algosdk.error import IndexerHTTPError
-from algosdk.future.transaction import PaymentTxn
+from algosdk.future.transaction import LogicSig, LogicSigTransaction, PaymentTxn
 from algosdk.v2client import algod, indexer
 
-INDEXER_TIMEOUT = 5  # 61 for devMode
+INDEXER_TIMEOUT = 10  # 61 for devMode
 
 
 ## SANDBOX
@@ -121,6 +122,20 @@ def _wait_for_confirmation(client, transaction_id, timeout):
     )
 
 
+def create_payment_transaction(escrow_address, params, receiver, amount):
+    """Create and return payment transaction from provided arguments."""
+    return PaymentTxn(escrow_address, params, receiver, amount)
+
+
+def process_logic_sig_transaction(logic_sig, payment_transaction):
+    """Create logic signature transaction and send it to the network."""
+    client = _algod_client()
+    logic_sig_transaction = LogicSigTransaction(payment_transaction, logic_sig)
+    transaction_id = client.send_transaction(logic_sig_transaction)
+    _wait_for_confirmation(client, transaction_id, 4)
+    return transaction_id
+
+
 def process_transactions(transactions):
     """Send provided grouped `transactions` to network and wait for confirmation."""
     client = _algod_client()
@@ -195,3 +210,19 @@ def transaction_info(transaction_id):
         )
 
     return transaction
+
+
+## UTILITY
+def _compile_source(source):
+    """Compile and return teal binary code."""
+    compile_response = _algod_client().compile(source)
+    return base64.b64decode(compile_response["result"])
+
+
+def signed_logic_signature(teal_source):
+    """Create and sign logic signature for provided `teal_source`."""
+    compiled_binary = _compile_source(teal_source)
+    logic_sig = LogicSig(compiled_binary)
+    private_key, escrow_address = account.generate_account()
+    logic_sig.sign(private_key)
+    return logic_sig, escrow_address

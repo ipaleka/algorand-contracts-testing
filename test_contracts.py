@@ -7,7 +7,7 @@ from algosdk import constants
 from algosdk.encoding import encode_address, is_valid_address
 from algosdk.error import TemplateInputError
 
-from contract import create_split_transaction, setup_split_contract
+from contracts import create_split_transaction, setup_split_contract
 from helpers import (
     account_balance,
     add_standalone_account,
