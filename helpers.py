@@ -5,7 +5,6 @@ import os
 import pty
 import subprocess
 import time
-
 from pathlib import Path
 
 from algosdk import account, mnemonic
