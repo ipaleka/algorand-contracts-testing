@@ -1,6 +1,6 @@
 # algorand-contracts-testing
 
-Create Algorand smart contract using [pyteal](https://github.com/algorand/pyteal) and test it using [pytest](https://github.com/pytest-dev/pytest).
+Create Algorand smart contracts using [pyteal](https://github.com/algorand/pyteal) and test them using [pytest](https://github.com/pytest-dev/pytest).
 
 
 ---
