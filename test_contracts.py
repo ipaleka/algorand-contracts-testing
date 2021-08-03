@@ -1,5 +1,4 @@
-"""Module for smart contract integration testing."""
-"""Testing module for smart contract domain logic."""
+"""Module for Algorand smart contracts integration testing."""
 
 import base64
 

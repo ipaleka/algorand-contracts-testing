@@ -66,19 +66,178 @@ export SANDBOX_DIR="/home/ipaleka/dev/algorand/sandbox
 Every Python-based project should run inside its own virtual environment. Create and activate one for this project with:
 
 ```bash
-python3 -m venv algcontestvenv
-source algcontestvenv/bin/activate
+python3 -m venv contractsvenv
+source contractsvenv/bin/activate
 ```
 
 After successful activation, the environment name will be presented at your prompt and that indicates that all the Python package installations issued will reside only in that environment.
 
 ```bash
-(algcontestvenv) $
+(contractsvenv) $
 ```
 
 We're ready now to install our project's main dependencies: the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk),  [PyTeal](https://github.com/algorand/pyteal) and [pytest](https://docs.pytest.org/).
 
 
 ```bash
-(algcontestvenv) $ pip install py-algorand-sdk pyteal pytest
+(contractsvenv) $ pip install py-algorand-sdk pyteal pytest
 ```
+
+
+# Creating smart contract from a template
+
+Our first smart contract will be a split payment contract where a transaction amount is split between two receivers at provided ratio. For that purpose we created a function which accepts contract's data as arguments:
+
+
+```python
+from algosdk import template
+
+def _create_split_contract(
+    owner,
+    receiver_1,
+    receiver_2,
+    rat_1=1,
+    rat_2=3,
+    expiry_round=5000000,
+    min_pay=3000,
+    max_fee=2000,
+):
+    """Create and return split template instance from the provided arguments."""
+    return template.Split(
+        owner, receiver_1, receiver_2, rat_1, rat_2, expiry_round, min_pay, max_fee
+    )
+```
+
+We use template's instance method `get_split_funds_transaction` in order to create a grouped transactions based on provided amount:
+
+```python
+def _create_grouped_transactions(split_contract, amount):
+    """Create grouped transactions for the provided `split_contract` and `amount`."""
+    params = suggested_params()
+    return split_contract.get_split_funds_transaction(
+        split_contract.get_program(),
+        amount,
+        1,
+        params.first,
+        params.last,
+        params.gh,
+    )
+```
+
+That grouped transactions instance is then sent to `process_transactions` helper function that is responsible for sending our smart contract to the Algorand blockchain.
+
+```python
+def _algod_client():
+    """Instantiate and return Algod client object."""
+    algod_address = "http://localhost:4001"
+    algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    return algod.AlgodClient(algod_token, algod_address)
+
+def process_transactions(transactions):
+    """Send provided grouped `transactions` to network and wait for confirmation."""
+    client = _algod_client()
+    transaction_id = client.send_transactions(transactions)
+    _wait_for_confirmation(client, transaction_id, 4)
+    return transaction_id
+```
+
+
+# Creating smart contract with PyTeal
+
+Our second smart contract is a simple bank for account contract where only pre-defined receiver is able to withdraw funds from the smart contract:
+
+```python
+def bank_for_account(receiver):
+    """Only allow receiver to withdraw funds from this contract account.
+
+    Args:
+        receiver (str): Base 32 Algorand address of the receiver.
+    """
+    is_payment = Txn.type_enum() == TxnType.Payment
+    is_single_tx = Global.group_size() == Int(1)
+    is_correct_receiver = Txn.receiver() == Addr(receiver)
+    no_close_out_addr = Txn.close_remainder_to() == Global.zero_address()
+    no_rekey_addr = Txn.rekey_to() == Global.zero_address()
+    acceptable_fee = Txn.fee() <= Int(BANK_ACCOUNT_FEE)
+
+    return And(
+        is_payment,
+        is_single_tx,
+        is_correct_receiver,
+        no_close_out_addr,
+        no_rekey_addr,
+        acceptable_fee,
+    )
+```
+
+The above PyTeal code is then compiled into TEAL byte-code using PyTeal's `compileTeal` function and a signed logic signature is created from the compiled source:
+
+```python
+def setup_bank_contract(**kwargs):
+    """Initialize and return bank contract for provided receiver."""
+    receiver = kwargs.pop("receiver", add_standalone_account()[1])
+
+    teal_source = compileTeal(
+        bank_for_account(receiver),
+        mode=Mode.Signature,
+        version=3,
+    )
+    logic_sig, escrow_address = signed_logic_signature(teal_source)
+    fund_account(escrow_address)
+    return logic_sig, escrow_address, receiver
+
+def create_bank_transaction(logic_sig, escrow_address, receiver, amount, fee=1000):
+    """Create bank transaction with provided amount."""
+    params = suggested_params()
+    params.fee = fee
+    params.flat_fee = True
+    payment_transaction = create_payment_transaction(
+        escrow_address, params, receiver, amount
+    )
+    transaction_id = process_logic_sig_transaction(logic_sig, payment_transaction)
+    return transaction_id
+```
+
+As you may notice, we provide some funds to the escrow account after its creation by calling the `fund_account` function.
+
+Among other used functions, the following helper functions are used for connecting to the blockchain and processing the smart contract:
+
+```python
+import base64
+
+from algosdk import account
+from algosdk.future.transaction import LogicSig, LogicSigTransaction, PaymentTxn
+
+
+def create_payment_transaction(escrow_address, params, receiver, amount):
+    """Create and return payment transaction from provided arguments."""
+    return PaymentTxn(escrow_address, params, receiver, amount)
+
+
+def process_logic_sig_transaction(logic_sig, payment_transaction):
+    """Create logic signature transaction and send it to the network."""
+    client = _algod_client()
+    logic_sig_transaction = LogicSigTransaction(payment_transaction, logic_sig)
+    transaction_id = client.send_transaction(logic_sig_transaction)
+    _wait_for_confirmation(client, transaction_id, 4)
+    return transaction_id
+
+def _compile_source(source):
+    """Compile and return teal binary code."""
+    compile_response = _algod_client().compile(source)
+    return base64.b64decode(compile_response["result"])
+
+def signed_logic_signature(teal_source):
+    """Create and sign logic signature for provided `teal_source`."""
+    compiled_binary = _compile_source(teal_source)
+    logic_sig = LogicSig(compiled_binary)
+    private_key, escrow_address = account.generate_account()
+    logic_sig.sign(private_key)
+    return logic_sig, escrow_address
+```
+
+That's all we need to prepare our smart contracts for testing.
+
+
+# Structure of the testing module
+
