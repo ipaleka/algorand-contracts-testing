@@ -2,7 +2,7 @@
 
 # Introduction
 
-In this tutorial we're going to create two smart contracts using two different approaches. The first smart contract will be created using predefined template that ships with the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk), while the other will be created using [PyTeal](https://github.com/algorand/pyteal) package.
+In this tutorial, we're going to create two smart contracts using two different approaches. The first smart contract will be created using a predefined template that ships with the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk), while the other will be created using [PyTeal](https://github.com/algorand/pyteal) package.
 
 All the source code for this tutorial is available in a [public GitHub repository](https://github.com/ipaleka/algorand-contracts-testing).
 
@@ -84,9 +84,9 @@ We're ready now to install our project's main dependencies: the [Python Algorand
 ```
 
 
-# Creating smart contract from a template
+# Creating a smart contract from a template
 
-Our first smart contract will be a split payment contract where a transaction amount is split between two receivers at provided ratio. For that purpose we created a function which accepts contract's data as arguments:
+Our first smart contract will be a split payment contract where a transaction amount is split between two receivers at provided ratio. For that purpose we created a function that accepts contract's data as arguments:
 
 
 ```python
@@ -141,10 +141,16 @@ def process_transactions(transactions):
     return transaction_id
 ```
 
+---
+**Note**
 
-# Creating smart contract with PyTeal
+Some helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for the actual implementation.
 
-Our second smart contract is a simple bank for account contract where only pre-defined receiver is able to withdraw funds from the smart contract:
+---
+
+# Creating a smart contract with PyTeal
+
+Our second smart contract is a simple bank for account contract where only a pre-defined receiver is able to withdraw funds from the smart contract:
 
 ```python
 def bank_for_account(receiver):
@@ -241,3 +247,75 @@ That's all we need to prepare our smart contracts for testing.
 
 # Structure of the testing module
 
+In order for our `test_contracts.py` testing module to be discovered by pytest test runner, we named it with `test_` prefix. For a large-scale project, you may create `tests` directory and place your testing modules in it.
+
+Pytest allows running a special function before the very first test from the current module is run. In our testing module, we use it to run the Sandbox daemon:
+
+```python
+from helpers import call_sandbox_command
+
+def setup_module(module):
+    """Ensure Algorand Sandbox is up prior to running tests from this module."""
+    call_sandbox_command("up")
+```
+
+We'll create a test suite for each of the two smart contracts. Before each suite's test, the `setup_method` is run. We use that method to create the needed accounts:
+
+```python
+from contracts import setup_bank_contract, setup_split_contract
+from helpers import add_standalone_account
+
+class TestBankContract:
+    """Class for testing the bank for account smart contract."""
+
+    def setup_method(self):
+        """Create receiver account before each test."""
+        _, self.receiver = add_standalone_account()
+
+    def _create_bank_contract(self, **kwargs):
+        """Helper method for creating bank contract from pre-existing receiver
+
+        and provided named arguments.
+        """
+        return setup_bank_contract(receiver=self.receiver, **kwargs)
+
+
+class TestSplitContract:
+    """Class for testing the split smart contract."""
+
+    def setup_method(self):
+        """Create owner and receivers accounts before each test."""
+        _, self.owner = add_standalone_account()
+        _, self.receiver_1 = add_standalone_account()
+        _, self.receiver_2 = add_standalone_account()
+
+    def _create_split_contract(self, **kwargs):
+        """Helper method for creating split contract from pre-existing accounts
+
+        and provided named arguments.
+        """
+        return setup_split_contract(
+            owner=self.owner,
+            receiver_1=self.receiver_1,
+            receiver_2=self.receiver_2,
+            **kwargs,
+        )
+```
+
+As you can see above, for the repeating code in our tests we also created a helper method in each suite to adhere to the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
+
+
+---
+**Note**
+
+We use only the `setup_method` that is executed **before** each test. In order to execute some code **after** each test, use the `teardown_method`. The same goes for the module level with `teardown_module` function.
+
+---
+
+
+# Writing our tests
+
+
+```python
+
+```

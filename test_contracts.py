@@ -29,7 +29,7 @@ def setup_module(module):
 
 
 class TestBankContract:
-    """Base class for testing the bank for account smart contract."""
+    """Class for testing the bank for account smart contract."""
 
     def setup_method(self):
         """Create receiver account before each test."""
@@ -135,7 +135,7 @@ class TestBankContract:
 
 
 class TestSplitContract:
-    """Base class for testing the split smart contract."""
+    """Class for testing the split smart contract."""
 
     def setup_method(self):
         """Create owner and receivers accounts before each test."""
