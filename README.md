@@ -1,11 +1,6 @@
+![py-algorand-sdk-pyteal-pytest](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/py-algorand-sdk-pyteal-pytest.png?raw=true)
 
-
-https://user-images.githubusercontent.com/49662536/128261271-1c62e129-1997-4b4d-a060-2005064cf626.mp4
-
-# algorand-contracts-testing
-
-Create Algorand smart contracts using [pyteal](https://github.com/algorand/pyteal) and test them using [pytest](https://github.com/pytest-dev/pytest).
-
+Create two Algorand smart contracts using [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk), respectively [PyTeal](https://github.com/algorand/pyteal) package, and test them using [pytest](https://docs.pytest.org/).
 
 ---
 **Security warning**
@@ -60,15 +55,15 @@ git clone https://github.com/algorand/sandbox.git
 As always for the Python-based projects, you should create a Python environment and activate it:
 
 ```bash
-python3 -m venv algtest
-source algtest/bin/activate
+python3 -m venv contractsvenv
+source contractsvenv/bin/activate
 ```
 
 Now change the directory to the project root directory and install the project dependencies with:
 
 ```bash
-(algtest) $ cd algorand-contracts-testing
-(algtest) $ pip install -r requirements.txt
+(contractsvenv) $ cd algorand-contracts-testing
+(contractsvenv) $ pip install -r requirements.txt
 ```
 
 Please bear in mind that starting the Sandbox for the first time takes time. If that's the case then your first tests run will take longer than usual.
@@ -76,13 +71,13 @@ Please bear in mind that starting the Sandbox for the first time takes time. If 
 Run the tests with:
 
 ```bash
-(algtest) $ pytest -v
+(contractsvenv) $ pytest -v
 ```
 
 For speeding up the tests run, issue the following to use three of your processor's cores in parallel:
 
 ```bash
-(algtest) $ pytest -v -n 3
+(contractsvenv) $ pytest -v -n 3
 ```
 
 
@@ -94,3 +89,8 @@ If you want a fresh start, reset the Sandbox with:
 ../sandbox/sandbox clean
 ../sandbox/sandbox up
 ```
+
+
+# TL; DR
+
+https://user-images.githubusercontent.com/49662536/128261271-1c62e129-1997-4b4d-a060-2005064cf626.mp4
