@@ -34,12 +34,13 @@ This project depends on [Algorand Sandbox](https://github.com/algorand/sandbox) 
 git clone https://github.com/algorand/sandbox.git
 ```
 
-The Sandbox Docker containers will be started automatically by running the tests from this project. As starting them for the first time takes time, it's advisable to start the Sandbox before the tests by issuing the following command:
+The Sandbox Docker containers will be started automatically by running the tests from this project. As starting them for the first time takes time, it's advisable to start the Sandbox before running the tests by issuing `./sandbox/sandbox up`:
 
-```bash
-./sandbox/sandbox up
-```
+![Starting Sandbox](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/starting-sandbox.png?raw=true)
 
+The Sandbox will be up and running after minute or two:
+
+![Up and running Sandbox](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/sandbox-up-and-running.png?raw=true)
 
 ---
 **Note**
@@ -56,7 +57,7 @@ $ tree -L 1
 If that's not the case, then you should set `SANDBOX_DIR` environment variable holding sandbox directory before running this project's tests:
 
 ```bash
-export SANDBOX_DIR="/home/ipaleka/dev/algorand/sandbox
+export SANDBOX_DIR="/home/ipaleka/dev/algorand/sandbox"
 ```
 
 ---
@@ -144,7 +145,7 @@ def process_transactions(transactions):
 ---
 **Note**
 
-Some helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for the actual implementation.
+Some helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
 
 ---
 
@@ -245,7 +246,7 @@ def signed_logic_signature(teal_source):
 That's all we need to prepare our smart contracts for testing.
 
 
-# Structure of the testing module
+# Structure of a testing module
 
 In order for our `test_contracts.py` testing module to be discovered by pytest test runner, we named it with `test_` prefix. For a large-scale project, you may create `tests` directory and place your testing modules in it.
 
@@ -259,7 +260,7 @@ def setup_module(module):
     call_sandbox_command("up")
 ```
 
-We'll create a test suite for each of the two smart contracts. Before each suite's test, the `setup_method` is run. We use that method to create the needed accounts:
+A test suite for each of the two smart contracts is created and the `setup_method` is run before each test in the suite. We use that setup method to create the needed accounts:
 
 ```python
 from contracts import setup_bank_contract, setup_split_contract
@@ -302,7 +303,7 @@ class TestSplitContract:
         )
 ```
 
-As you can see above, for the repeating code in our tests we also created a helper method in each suite to adhere to the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
+Instead of repeating the code, we've created a helper method in each suite. That way we adhere to the [DRY principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
 
 
 ---
