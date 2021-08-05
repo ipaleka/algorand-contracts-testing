@@ -144,7 +144,7 @@ class TestSplitContract:
         _, self.receiver_2 = add_standalone_account()
 
     def _create_split_contract(self, **kwargs):
-        """Helper method for creating split contract from pre-existing accounts
+        """Helper method for creating a split contract from pre-existing accounts
 
         and provided named arguments.
         """

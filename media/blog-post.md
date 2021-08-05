@@ -6,7 +6,7 @@ In this tutorial, we're going to create two smart contracts using two different 
 
 All the source code for this tutorial is available in a [public GitHub repository](https://github.com/ipaleka/algorand-contracts-testing).
 
-For those of you eager to get started quickly, here's a video that wraps around the process of installing the requirements and running the tests;
+For those of you eager to get started quickly, here's a video that wraps around the process of installing the requirements and running the tests:
 
 https://user-images.githubusercontent.com/49662536/128261271-1c62e129-1997-4b4d-a060-2005064cf626.mp4
 
@@ -42,7 +42,7 @@ The Sandbox Docker containers will be started automatically by running the tests
 
 ![Starting Sandbox](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/starting-sandbox.png?raw=true)
 
-The Sandbox will be up and running after minute or two:
+The Sandbox will be up and running after a minute or two:
 
 ![Up and running Sandbox](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/sandbox-up-and-running.png?raw=true)
 
@@ -81,7 +81,7 @@ After successful activation, the environment name will be presented at your prom
 (contractsvenv) $
 ```
 
-We're ready now to install our project's main dependencies: the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk),  [PyTeal](https://github.com/algorand/pyteal) and [pytest](https://docs.pytest.org/).
+We're ready now to install our project's main dependencies: the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk),  [PyTeal](https://github.com/algorand/pyteal), and [pytest](https://docs.pytest.org/).
 
 
 ```bash
@@ -287,7 +287,7 @@ class TestSplitContract:
         _, self.receiver_2 = add_standalone_account()
 
     def _create_split_contract(self, **kwargs):
-        """Helper method for creating split contract from pre-existing accounts
+        """Helper method for creating a split contract from pre-existing accounts
 
         and provided named arguments.
         """
@@ -427,7 +427,7 @@ def transaction_info(transaction_id):
     return transaction
 ```
 
-The code for our tests should be straightforward. We use the returned transaction's ID to retrieve a transaction as a Python dictionary and we check some of its values afterwards. It is worth noting that in the case of split contract we check that the *group* key holds a valid address as a value which means the transactions are grouped, while for the bank account we test exactly the opposite - that no group key even exists:
+The code for our tests should be straightforward. We use the returned transaction's ID to retrieve a transaction as a Python dictionary and we check some of its values afterward. It is worth noting that in the case of a split contract we check that the *group* key holds a valid address as a value which means the transactions are grouped, while for the bank account we test exactly the opposite - that no group key even exists:
 
 ```python
 from algosdk import constants
