@@ -123,6 +123,12 @@ def _create_grouped_transactions(split_contract, amount):
         params.last,
         params.gh,
     )
+
+def create_split_transaction(split_contract, amount):
+    """Create transaction with provided amount for provided split contract."""
+    transactions = _create_grouped_transactions(split_contract, amount)
+    transaction_id = process_transactions(transactions)
+    return transaction_id
 ```
 
 That grouped transactions instance is then sent to `process_transactions` helper function that is responsible for sending our smart contract to the Algorand blockchain.
@@ -317,7 +323,6 @@ We use only the `setup_method` that is executed **before** each test. In order t
 
 # Testing smart contracts implementation
 
-
 Let's start our testing journey by creating a test confirming that the accounts created in the setup method take their roles in our smart contract:
 
 ```python
@@ -339,7 +344,7 @@ Well done, you have successfully tested the code responsible for creating the sm
 
 Now add a test that checks the original smart contract creation function without providing any accounts to it, together with two counterpart tests in the bank contract test suite:
 
-```bash
+```python
 class TestSplitContract:
     #
     def test_split_contract_creates_new_accounts(self):
@@ -379,3 +384,105 @@ In order to make the output more verbose, add the `-v` argument to pytest comman
 As you can see from the provided screenshots, running these tests takes quite a lot of time. The initial delay is because we invoked the Sandbox daemon in the `setup_module` function, and processing the transactions in the blockchain spent the majority of the time (about 5 seconds for each of them). To considerably speed up the whole process, you may try implementing the devMode configuration which creates a block for every transaction. Please bear in mind that at the time of writing this tutorial the Algorand Sandbox doesn't ship with such a template [yet](https://github.com/algorand/sandbox/issues/62).
 
 ---
+
+
+# Testing smart contract transactions
+
+Now let's test the actual implementation of our smart contracts. As recording a transaction in the Algorand Indexer database takes some 5 seconds after it is submitted to the blockchain, we've created a helper function that will wait until the transaction can be retrieved:
+
+```python
+import time
+
+from algosdk.error import IndexerHTTPError
+from algosdk.v2client import indexer
+
+INDEXER_TIMEOUT = 10
+
+
+def _indexer_client():
+    """Instantiate and return Indexer client object."""
+    indexer_address = "http://localhost:8980"
+    indexer_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    return indexer.IndexerClient(indexer_token, indexer_address)
+
+def transaction_info(transaction_id):
+    """Return transaction with provided id."""
+    timeout = 0
+    while timeout < INDEXER_TIMEOUT:
+        try:
+            transaction = _indexer_client().transaction(transaction_id)
+            break
+        except IndexerHTTPError:
+            time.sleep(1)
+            timeout += 1
+    else:
+        raise TimeoutError(
+            "Timeout reached waiting for transaction to be available in indexer"
+        )
+
+    return transaction
+```
+
+The code for our tests should be straightforward. We use the returned transaction's ID to retrieve a transaction as a Python dictionary and we check some of its values afterwards. It is worth noting that in the case of split contract we check that the *group* key holds a valid address as a value which means the transactions are grouped, while for the bank account we test exactly the opposite - that no group key even exists:
+
+```python
+from algosdk import constants
+from algosdk.encoding import encode_address, is_valid_address
+
+from contracts import BANK_ACCOUNT_FEE, create_bank_transaction, create_split_transaction
+from helpers import transaction_info
+
+
+class TestSplitContract:
+    #
+    def test_split_contract_transaction(self):
+        """Successful transaction should have sender equal to escrow account.
+
+        Also, receiver should be contract's receiver_1, the type should be payment,
+        and group should be a valid address.
+        """
+        contract = setup_split_contract()
+        transaction_id = create_split_transaction(contract, 1000000)
+        transaction = transaction_info(transaction_id)
+        assert transaction.get("transaction").get("tx-type") == constants.payment_txn
+        assert transaction.get("transaction").get("sender") == contract.get_address()
+        assert (
+            transaction.get("transaction").get("payment-transaction").get("receiver")
+            == contract.receiver_1
+        )
+        assert is_valid_address(
+            encode_address(
+                base64.b64decode(transaction.get("transaction").get("group"))
+            )
+        )
+
+
+class TestBankContract:
+    #
+    def test_bank_contract_transaction(self):
+        """Successful transaction should have sender equal to escrow account.
+
+        Also, the transaction type should be payment, payment receiver should be
+        contract's receiver, and the payment amount should be equal to provided amount.
+        Finally, there should be no group field in transaction.
+        """
+        amount = 1000000
+        logic_sig, escrow_address, receiver = self._create_bank_contract(
+            fee=BANK_ACCOUNT_FEE
+        )
+        transaction_id = create_bank_transaction(
+            logic_sig, escrow_address, receiver, amount
+        )
+        transaction = transaction_info(transaction_id)
+        assert transaction.get("transaction").get("tx-type") == constants.payment_txn
+        assert transaction.get("transaction").get("sender") == escrow_address
+        assert (
+            transaction.get("transaction").get("payment-transaction").get("receiver")
+            == receiver
+        )
+        assert (
+            transaction.get("transaction").get("payment-transaction").get("amount")
+            == amount
+        )
+        assert transaction.get("transaction").get("group", None) is None
+```
