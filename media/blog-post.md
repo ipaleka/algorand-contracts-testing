@@ -151,7 +151,7 @@ def process_transactions(transactions):
 ---
 **Note**
 
-Some tests and helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
+Some helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
 
 ---
 
@@ -498,7 +498,7 @@ In the previous section, we made the assertions based on the returned values fro
 
 
 ```python
-from algosdk.error import TemplateInputError
+from algosdk.error import AlgodHTTPError, TemplateInputError
 
 from helpers import account_balance
 
@@ -531,4 +531,70 @@ class TestSplitContract:
             str(exception.value)
             == f"the amount paid to receiver_1 must be greater than {min_pay}"
         )
+
+
+class TestBankContract:
+    #
+    def test_bank_contract_raises_error_for_wrong_receiver(self):
+        """Transaction should fail for a wrong receiver."""
+        _, other_receiver = add_standalone_account()
+
+        logic_sig, escrow_address, _ = self._create_bank_contract()
+        with pytest.raises(AlgodHTTPError) as exception:
+            create_bank_transaction(logic_sig, escrow_address, other_receiver, 2000000)
+        assert "rejected by logic" in str(exception.value)
 ```
+
+
+# Parametrization of arguments for a test function
+
+Pytest allows defining multiple sets of arguments and fixtures at the test function or class. Add the `pytest.mark.parametrize` decorator holding your fixture data to test function and define the arguments with the same names as fixture elements. We've created six tests using the same test function with the following code:
+
+```python
+class TestSplitContract:
+    #
+    @pytest.mark.parametrize(
+        "amount,rat_1,rat_2",
+        [
+            (1000000, 1, 3),
+            (999999, 1, 2),
+            (1400000, 2, 5),
+            (1000000, 1, 9),
+            (900000, 4, 5),
+            (1200000, 5, 1),
+        ],
+    )
+    def test_split_contract_balances_of_involved_accounts(self, amount, rat_1, rat_2):
+        """After successful transaction, balance of involved accounts should pass
+
+        assertion to result of expressions calculated from the provided arguments.
+        """
+        contract = self._create_split_contract(rat_1=rat_1, rat_2=rat_2)
+        assert account_balance(contract.owner) == 0
+        assert account_balance(contract.receiver_1) == 0
+        assert account_balance(contract.receiver_2) == 0
+
+        escrow = contract.get_address()
+        escrow_balance = account_balance(escrow)
+
+        create_split_transaction(contract, amount)
+        assert account_balance(contract.owner) == 0
+        assert account_balance(contract.receiver_1) == rat_1 * amount / (rat_1 + rat_2)
+        assert account_balance(contract.receiver_2) == rat_2 * amount / (rat_1 + rat_2)
+        assert account_balance(escrow) == escrow_balance - amount - contract.max_fee
+```
+
+Please take a look at the [pytest documentation](https://docs.pytest.org/en/6.2.x/fixture.html) on fixtures for the use case that best suits your needs.
+
+
+# 
+
+pip install -xdist
+
+-n 3
+
+screen shots
+
+
+
+As you can see from this screenshot, some tests aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
