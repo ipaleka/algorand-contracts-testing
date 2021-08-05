@@ -595,7 +595,7 @@ If you have multiple CPU cores you can use those for a combined test run. All yo
 (contractsvenv) $ pip install pytest-xdist
 ```
 
-After that, you'll be able to run tests in parallel on number of cores set with the `-n` argument added to pytest command. The following example uses three cores running in parallel:
+After that, you'll be able to run tests in parallel on a number of cores set with the `-n` argument added to pytest command. The following example uses three cores running in parallel:
 
 ![Running tests in parallel](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/running-tests-in-parallel.png?raw=true)
 
