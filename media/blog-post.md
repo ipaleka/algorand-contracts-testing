@@ -2,7 +2,7 @@
 
 # Introduction
 
-In this tutorial, we're going to create two smart contracts using two different approaches. The first smart contract will be created using a predefined template that ships with the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk), while the other will be created using [PyTeal](https://github.com/algorand/pyteal) package.
+In this tutorial, we're going to create two smart contracts using two different approaches and then we're going to test their implementation using [pytest](https://docs.pytest.org/). The first smart contract will be created using a predefined template that ships with the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk), while the other will be created using [PyTeal](https://github.com/algorand/pyteal) package.
 
 All the source code for this tutorial is available in a [public GitHub repository](https://github.com/ipaleka/algorand-contracts-testing).
 
@@ -603,3 +603,11 @@ As you can see from this screenshot, some tests aren't shown here in the tutoria
 
 
 # Conclusion
+
+We introduced the reader to the two ways of creating Algorand smart contracts using the Python programming language. We created the first smart contract using a template that ships with the [Python Algorand SDK](https://github.com/algorand/py-algorand-sdk). The second contract is created using [PyTeal](https://github.com/algorand/pyteal), a Python wrapper around the [Transaction Execution Approval Language](https://developer.algorand.org/docs/reference/teal/specification/) (TEAL).
+
+Finally, we created two test suites in [pytest](https://docs.pytest.org/) using best practices and explained the logic behind them.
+
+For any question or suggestion you may have, use the [issues section](https://github.com/ipaleka/algorand-contracts-testing/issues) of this project's repository or reach out in the Algorand [Discord channel](https://discord.com/invite/hbcUSuw).
+
+Enjoy your coding!
