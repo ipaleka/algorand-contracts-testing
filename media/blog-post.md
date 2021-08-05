@@ -494,6 +494,8 @@ If you don't want to run all the existing tests every time, add the `-k` argumen
 
 # Testing validity of provided arguments
 
+In the previous section, we made the assertions based on the returned values from the target functions. Another approach is to call a function with some arguments provided and test if it raises an error:
+
 
 ```python
 from algosdk.error import TemplateInputError
@@ -529,3 +531,4 @@ class TestSplitContract:
             str(exception.value)
             == f"the amount paid to receiver_1 must be greater than {min_pay}"
         )
+```
