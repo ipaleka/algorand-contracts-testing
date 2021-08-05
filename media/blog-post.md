@@ -6,6 +6,10 @@ In this tutorial, we're going to create two smart contracts using two different 
 
 All the source code for this tutorial is available in a [public GitHub repository](https://github.com/ipaleka/algorand-contracts-testing).
 
+For those of you eager to get started quickly, here's a video that wraps around the process of installing the requirements and running the tests;
+
+https://user-images.githubusercontent.com/49662536/128261271-1c62e129-1997-4b4d-a060-2005064cf626.mp4
+
 
 # Requirements
 
@@ -131,7 +135,7 @@ def create_split_transaction(split_contract, amount):
     return transaction_id
 ```
 
-That grouped transactions instance is then sent to `process_transactions` helper function that is responsible for sending our smart contract to the Algorand blockchain.
+That grouped transactions instance is then sent to `process_transactions` helper function that is responsible for deploying our smart contract to the Algorand blockchain.
 
 ```python
 def _algod_client():
@@ -151,7 +155,7 @@ def process_transactions(transactions):
 ---
 **Note**
 
-Some helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
+Some helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing/blob/main/helpers.py) for their implementation.
 
 ---
 
@@ -599,7 +603,7 @@ After that, you'll be able to run tests in parallel on a number of cores set wit
 
 ![Running tests in parallel](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/running-tests-in-parallel.png?raw=true)
 
-As you can see from this screenshot, some tests aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
+As you can see from this screenshot, some tests aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing/blob/main/test_contracts.py) for their implementation.
 
 
 # Conclusion
@@ -608,6 +612,6 @@ We introduced the reader to the two ways of creating Algorand smart contracts us
 
 Finally, we created two test suites in [pytest](https://docs.pytest.org/) using best practices and explained the logic behind them.
 
-For any question or suggestion you may have, use the [issues section](https://github.com/ipaleka/algorand-contracts-testing/issues) of this project's repository or reach out in the Algorand [Discord channel](https://discord.com/invite/hbcUSuw).
+For any questions or suggestions, use the [issues section](https://github.com/ipaleka/algorand-contracts-testing/issues) of this project's repository or reach out in the Algorand [Discord channel](https://discord.com/invite/hbcUSuw).
 
 Enjoy your coding!
