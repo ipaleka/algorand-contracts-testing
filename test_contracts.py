@@ -173,7 +173,7 @@ class TestSplitContract:
         assert contract.receiver_2 == self.receiver_2
 
     def test_split_contract_min_pay(self):
-        """Transaction should be created when the splitted amount for receiver_1
+        """Transaction should be created when the split amount for receiver_1
 
         is greater than `min_pay`.
         """
@@ -184,7 +184,7 @@ class TestSplitContract:
         assert account_balance(contract.receiver_1) > min_pay
 
     def test_split_contract_min_pay_failed_transaction(self):
-        """Transaction should fail when the splitted amount for receiver_1
+        """Transaction should fail when the split amount for receiver_1
 
         is less than `min_pay`.
         """

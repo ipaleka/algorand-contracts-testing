@@ -151,7 +151,7 @@ def process_transactions(transactions):
 ---
 **Note**
 
-Some helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
+Some tests and helper functions aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
 
 ---
 
@@ -486,3 +486,46 @@ class TestBankContract:
         )
         assert transaction.get("transaction").get("group", None) is None
 ```
+
+If you don't want to run all the existing tests every time, add the `-k` argument to pytest followed by a text that identifies the test(s) you wish to run:
+
+![Run tests by name](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/pytest-run-by-name.png?raw=true)
+
+
+# Testing validity of provided arguments
+
+
+```python
+from algosdk.error import TemplateInputError
+
+from helpers import account_balance
+
+
+class TestSplitContract:
+    #
+    def test_split_contract_min_pay(self):
+        """Transaction should be created when the split amount for receiver_1
+
+        is greater than `min_pay`.
+        """
+        min_pay = 250000
+        contract = self._create_split_contract(min_pay=min_pay, rat_1=1, rat_2=3)
+        amount = 2000000
+        create_split_transaction(contract, amount)
+        assert account_balance(contract.receiver_1) > min_pay
+
+    def test_split_contract_min_pay_failed_transaction(self):
+        """Transaction should fail when the split amount for receiver_1
+
+        is less than `min_pay`.
+        """
+        min_pay = 300000
+        contract = self._create_split_contract(min_pay=min_pay, rat_1=1, rat_2=3)
+        amount = 1000000
+
+        with pytest.raises(TemplateInputError) as exception:
+            create_split_transaction(contract, amount)
+        assert (
+            str(exception.value)
+            == f"the amount paid to receiver_1 must be greater than {min_pay}"
+        )
