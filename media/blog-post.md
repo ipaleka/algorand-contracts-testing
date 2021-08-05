@@ -584,17 +584,22 @@ class TestSplitContract:
         assert account_balance(escrow) == escrow_balance - amount - contract.max_fee
 ```
 
-Please take a look at the [pytest documentation](https://docs.pytest.org/en/6.2.x/fixture.html) on fixtures for the use case that best suits your needs.
+You may take a look at the [pytest documentation](https://docs.pytest.org/en/6.2.x/fixture.html) on fixtures for the use case that best suits your needs.
 
 
-# 
+# Speeding up by running the tests in parallel
 
-pip install -xdist
+If you have multiple CPU cores you can use those for a combined test run. All you have to do for that is to install the [pytest-xdist](https://github.com/pytest-dev/pytest-xdist) plugin into your virtual environment:
 
--n 3
+```bash
+(contractsvenv) $ pip install pytest-xdist
+```
 
-screen shots
+After that, you'll be able to run tests in parallel on number of cores set with the `-n` argument added to pytest command. The following example uses three cores running in parallel:
 
-
+![Running tests in parallel](https://github.com/ipaleka/algorand-contracts-testing/blob/main/media/running-tests-in-parallel.png?raw=true)
 
 As you can see from this screenshot, some tests aren't shown here in the tutorial for the sake of simplicity. Please take a look at the [project's repository](https://github.com/ipaleka/algorand-contracts-testing) for their implementation.
+
+
+# Conclusion
