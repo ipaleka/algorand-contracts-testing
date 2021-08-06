@@ -8,7 +8,7 @@ All the source code for this tutorial is available in a [public GitHub repositor
 
 For those of you eager to get started quickly, here's a video that wraps around the process of installing the requirements and running the tests:
 
-https://user-images.githubusercontent.com/49662536/128261271-1c62e129-1997-4b4d-a060-2005064cf626.mp4
+https://user-images.githubusercontent.com/49662536/128438519-1cc02e16-db55-4583-9ad9-1e8023939da9.mp4
 
 
 # Requirements
