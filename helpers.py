@@ -218,10 +218,7 @@ def _compile_source(source):
     return base64.b64decode(compile_response["result"])
 
 
-def signed_logic_signature(teal_source):
-    """Create and sign logic signature for provided `teal_source`."""
+def logic_signature(teal_source):
+    """Create and return logic signature for provided `teal_source`."""
     compiled_binary = _compile_source(teal_source)
-    logic_sig = LogicSig(compiled_binary)
-    private_key, escrow_address = account.generate_account()
-    logic_sig.sign(private_key)
-    return logic_sig, escrow_address
+    return LogicSig(compiled_binary)

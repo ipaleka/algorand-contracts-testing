@@ -12,7 +12,7 @@ from helpers import (
     fund_account,
     process_logic_sig_transaction,
     process_transactions,
-    signed_logic_signature,
+    logic_signature,
     suggested_params,
     transaction_info,
 )
@@ -66,7 +66,8 @@ def setup_bank_contract(**kwargs):
         mode=Mode.Signature,
         version=3,
     )
-    logic_sig, escrow_address = signed_logic_signature(teal_source)
+    logic_sig = logic_signature(teal_source)
+    escrow_address = logic_sig.address()
     fund_account(escrow_address)
     return logic_sig, escrow_address, receiver
 

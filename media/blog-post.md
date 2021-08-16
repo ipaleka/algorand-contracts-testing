@@ -113,7 +113,7 @@ def _create_split_contract(
     )
 ```
 
-We use template's instance method `get_split_funds_transaction` in order to create a grouped transactions based on provided amount:
+We use template's instance method `get_split_funds_transaction` in order to create a list of two transactions based on provided amount:
 
 ```python
 def _create_grouped_transactions(split_contract, amount):
@@ -135,7 +135,7 @@ def create_split_transaction(split_contract, amount):
     return transaction_id
 ```
 
-That grouped transactions instance is then sent to `process_transactions` helper function that is responsible for deploying our smart contract to the Algorand blockchain.
+That list of two transactions is then sent to `process_transactions` helper function that is responsible for deploying our smart contract to the Algorand blockchain.
 
 ```python
 def _algod_client():
@@ -199,7 +199,8 @@ def setup_bank_contract(**kwargs):
         mode=Mode.Signature,
         version=3,
     )
-    logic_sig, escrow_address = signed_logic_signature(teal_source)
+    logic_sig = logic_signature(teal_source)
+    escrow_address = logic_sig.address()
     fund_account(escrow_address)
     return logic_sig, escrow_address, receiver
 
@@ -215,7 +216,7 @@ def create_bank_transaction(logic_sig, escrow_address, receiver, amount, fee=100
     return transaction_id
 ```
 
-As you may notice, we provide some funds to the escrow account after its creation by calling the `fund_account` function.
+As you may notice, we provide some funds to the escrow account by calling the `fund_account` function.
 
 Among other used functions, the following helper functions are used for connecting to the blockchain and processing the smart contract:
 
@@ -239,18 +240,17 @@ def process_logic_sig_transaction(logic_sig, payment_transaction):
     _wait_for_confirmation(client, transaction_id, 4)
     return transaction_id
 
+
 def _compile_source(source):
     """Compile and return teal binary code."""
     compile_response = _algod_client().compile(source)
     return base64.b64decode(compile_response["result"])
 
-def signed_logic_signature(teal_source):
-    """Create and sign logic signature for provided `teal_source`."""
+
+def logic_signature(teal_source):
+    """Create and return logic signature for provided `teal_source`."""
     compiled_binary = _compile_source(teal_source)
-    logic_sig = LogicSig(compiled_binary)
-    private_key, escrow_address = account.generate_account()
-    logic_sig.sign(private_key)
-    return logic_sig, escrow_address
+    return LogicSig(compiled_binary)
 ```
 
 That's all we need to prepare our smart contracts for testing.
