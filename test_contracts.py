@@ -25,7 +25,7 @@ from helpers import (
 def setup_module(module):
     """Ensure Algorand Sandbox is up prior to running tests from this module."""
     call_sandbox_command("up")
-    # call_sandbox_command("up", "devmode")
+    # call_sandbox_command("up", "dev")
 
 
 class TestBankContract:
