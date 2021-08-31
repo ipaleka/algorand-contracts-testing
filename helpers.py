@@ -12,7 +12,7 @@ from algosdk.error import IndexerHTTPError
 from algosdk.future.transaction import LogicSig, LogicSigTransaction, PaymentTxn
 from algosdk.v2client import algod, indexer
 
-INDEXER_TIMEOUT = 10  # 61 for devMode
+INDEXER_TIMEOUT = 61
 
 
 ## SANDBOX
@@ -181,7 +181,7 @@ def _initial_funds_address():
             account.get("address")
             for account in _indexer_client().accounts().get("accounts", [{}, {}])
             if account.get("created-at-round") == 0
-            and account.get("status") == "Offline"  # "Online" for devMode
+            and account.get("status") == "Online"
         ),
         None,
     )
